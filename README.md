@@ -1,6 +1,6 @@
 # v100-egpu-host
 
-Host-side scripts for running a **passive Tesla V100 PCIe 32 GB** on a consumer **OcuLink eGPU dock**: bringing the
+Host-side scripts for running a **passive Tesla V100 PCIe 32 GB** on a consumer **OcuLink eGPU dock** (an AOOSTAR AG02): bringing the
 card up after a cold boot (the dock's power, the PCIe link, the driver), keeping it cool (a PWM fan driven from the
 GPU's own temperature), and ordering the inference service after both. Two shell scripts and two systemd units, no
 daemons beyond `nvidia-smi`.
@@ -43,7 +43,7 @@ an AT-style protocol, a fan controller with a kernel hwmon driver).
 | Part | Used here | Role |
 |---|---|---|
 | GPU | NVIDIA Tesla V100 PCIe 32 GB (passive, 250 W TDP, run at 200 W) | the card |
-| eGPU dock | OcuLink (SFF-8612) eGPU dock with its own PSU and power switch | PCIe slot, 12 V for the card |
+| eGPU dock | AOOSTAR AG02 (OcuLink SFF-8612, built-in PSU, power switch) | PCIe slot, 12 V for the card |
 | Host link | OcuLink 4i cable, PCIe Gen3 x4 (~3.3 GB/s) | the only path between host and card |
 | Host | AMD Ryzen 7 5700U mini-PC, 16 threads, 32 GB RAM, Arch Linux, kernel 7.2 | runs the services and the containers |
 | USB relay | DSD TECH SH-UR01A (Silicon Labs CP2102N, 9600 8N1, `AT+CH1=1/0`) | lets the host power the dock |
