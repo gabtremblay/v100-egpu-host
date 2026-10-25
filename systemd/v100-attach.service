@@ -1,0 +1,23 @@
+# /etc/systemd/system/v100-attach.service
+# Boot:     runs the full attach sequence (relay on -> S3 dance -> driver -> cap)
+# Shutdown: ExecStop de-energizes the relay, so the dock is dark before the
+#           next POST ever sees a trained card (covers warm reboots, where USB
+#           VBUS can otherwise keep the relay latched through reset).
+#
+# Order your inference services after this:  After=v100-attach.service
+#                                            Requires=v100-attach.service
+
+[Unit]
+Description=V100 eGPU dock power + attach
+# ExecStop must run while udev/USB are still alive during shutdown:
+After=systemd-udevd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/boot-v100.sh
+ExecStop=/usr/local/sbin/boot-v100.sh off
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

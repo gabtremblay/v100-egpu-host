@@ -1,0 +1,19 @@
+[Unit]
+Description=V100 fan daemon (Aquacomputer QUADRO pwm from nvidia-smi temperature)
+# Adjust if your dock/attach unit has another name; After= on a missing unit is harmless.
+After=v100-attach.service
+Requires=v100-attach.service
+ 
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/v100-fan.sh
+Environment=FAN_SLOT=1 FAN_ON_C=65 FAN_MAX_C=65 FAN_MIN_PCT=40 FAN_POLL_S=3 LOG_EVERY_S=60 GPU_POWER_CAP_W=200
+Restart=always
+RestartSec=5
+# park() may hold the curve up to PARK_MAX_S (300 s) on stop
+TimeoutStopSec=330
+KillMode=mixed
+ 
+[Install]
+WantedBy=multi-user.target
+ 

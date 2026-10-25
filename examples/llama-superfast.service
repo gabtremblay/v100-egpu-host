@@ -1,0 +1,36 @@
+[Unit]
+Description=llama-superfast-v100 qwen3.8-27b (Huihui abliterated UD-Q4_K_XL + MTP) on the V100
+# Both must have finished: the attach unit brings the card up, the fan unit owns
+# the QUADRO pwm and the 200 W cap. v100-attach.service needs Type=oneshot +
+# RemainAfterExit=yes for After= to mean "done" rather than "launched".
+Requires=docker.service v100-attach.service v100-fan.service
+After=docker.service v100-attach.service v100-fan.service network-online.target
+Wants=network-online.target
+# One card, one server: starting this stops vllm-1cat and vice versa. Both use
+# host port 8080. Keep only one of the two enabled for boot.
+Conflicts=vllm-1cat.service
+# A container that dies at startup (OOM at load, missing model) would otherwise
+# loop through restarts forever.
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=initnull
+Group=docker
+WorkingDirectory=/home/initnull/ai-models
+# FOLLOW=1: the launcher execs `docker logs -f`, so the unit stays active for the
+# container's lifetime and its log goes to the journal. RESTART_POLICY=no: docker
+# must not resurrect the container at docker.service start, before the GPU is
+# attached — systemd restarts it (Restart=always), never on a manual stop.
+Environment=FOLLOW=1 RESTART_POLICY=no
+ExecStart=/home/initnull/ai-models/run-superfast.sh
+ExecStop=/usr/bin/docker stop -t 30 llama-superfast
+Restart=always
+RestartSec=15
+TimeoutStartSec=300
+TimeoutStopSec=90
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
