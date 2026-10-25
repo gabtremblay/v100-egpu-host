@@ -15,7 +15,8 @@ was never meant to see one: **with the card powered at POST the machine does not
 over the 32 GB BAR it is asked to map, and there is no hacked BIOS for this board that enables Resizable BAR or
 above-4G decoding to make it fit. So the card must be dark while the host boots and powered only once Linux owns
 the PCI bus, with `pci=nocrs` letting the kernel assign the window the firmware refused. That is what the USB relay
-is for: it bypasses the dock's power switch so the host itself decides when the card gets power. An eGPU dock's PCIe
+is for: the dock was physically modified for it — its power switch is wired out to the relay's normally-open
+contacts, so the host itself decides when the card gets power (the relay closing is the button being pressed). An eGPU dock's PCIe
 link, in turn, only trains if the card has power *before* the port is enumerated, so powering it late needs the link
 retrained. Left alone, a boot ends with no POST, or with the card absent, or present without its 32 GB BAR, or present
 and silently cooking at 85 °C. The scripts here make the sequence deterministic:
@@ -45,7 +46,8 @@ an AT-style protocol, a fan controller with a kernel hwmon driver).
 | eGPU dock | OcuLink (SFF-8612) eGPU dock with its own PSU and power switch | PCIe slot, 12 V for the card |
 | Host link | OcuLink 4i cable, PCIe Gen3 x4 (~3.3 GB/s) | the only path between host and card |
 | Host | AMD Ryzen 7 5700U mini-PC, 16 threads, 32 GB RAM, Arch Linux, kernel 7.2 | runs the services and the containers |
-| USB relay | DSD TECH SH-UR01A (Silicon Labs CP2102N, 9600 8N1, `AT+CH1=1/0`), wired across the dock's power switch on its NO contacts | lets the host power the dock |
+| USB relay | DSD TECH SH-UR01A (Silicon Labs CP2102N, 9600 8N1, `AT+CH1=1/0`) | lets the host power the dock |
+| Dock modification | the dock's power switch leads are brought out and wired across the relay's NO contacts (switch kept in parallel for manual use) | makes the dock switchable by the host |
 | Fan controller | Aquacomputer QUADRO (USB, hwmon `quadro`, driver `aquacomputer_d5next`) | PWM output the daemon owns |
 | Fan | one 4-pin PWM fan on QUADRO header 1, ducted onto the V100's heatsink | the cooling the card lacks |
 | Kernel cmdline | `pci=nocrs iommu=pt pcie_aspm=off modprobe.blacklist=nouveau nouveau.modeset=0` | `pci=nocrs` so the kernel, not the firmware, assigns the 32 GB BAR (the firmware cannot: no Resizable BAR / above-4G option on this board); ASPM off keeps the eGPU link from dropping |
