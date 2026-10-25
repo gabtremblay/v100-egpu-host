@@ -10,10 +10,15 @@ a llama.cpp fork tuned for this card: Qwen3.8-27B with a 245,760-token context o
 
 ## Why this exists
 
-A datacenter V100 has no fan and no power switch of its own; an eGPU dock has a power button, a PSU and a PCIe link
-that only trains if the card has power *before* the host enumerates it. Left alone, a cold boot ends with the card
-absent, or present without its 32 GB BAR, or present and silently cooking at 85 °C. The scripts here make the
-sequence deterministic:
+A datacenter V100 has no fan and no power switch of its own, and this host is a small Ryzen mini-PC whose firmware
+was never meant to see one: **with the card powered at POST the machine does not boot at all** — the firmware trips
+over the 32 GB BAR it is asked to map, and there is no hacked BIOS for this board that enables Resizable BAR or
+above-4G decoding to make it fit. So the card must be dark while the host boots and powered only once Linux owns
+the PCI bus, with `pci=nocrs` letting the kernel assign the window the firmware refused. That is what the USB relay
+is for: it bypasses the dock's power switch so the host itself decides when the card gets power. An eGPU dock's PCIe
+link, in turn, only trains if the card has power *before* the port is enumerated, so powering it late needs the link
+retrained. Left alone, a boot ends with no POST, or with the card absent, or present without its 32 GB BAR, or present
+and silently cooking at 85 °C. The scripts here make the sequence deterministic:
 
 1. **Power.** The dock's power switch is bypassed by a USB relay; the host closes it, waits for the rails.
 2. **Link.** The host suspends to S3 for a few seconds and resumes: the resume retrains the PCIe port with the card
@@ -43,10 +48,11 @@ an AT-style protocol, a fan controller with a kernel hwmon driver).
 | USB relay | DSD TECH SH-UR01A (Silicon Labs CP2102N, 9600 8N1, `AT+CH1=1/0`), wired across the dock's power switch on its NO contacts | lets the host power the dock |
 | Fan controller | Aquacomputer QUADRO (USB, hwmon `quadro`, driver `aquacomputer_d5next`) | PWM output the daemon owns |
 | Fan | one 4-pin PWM fan on QUADRO header 1, ducted onto the V100's heatsink | the cooling the card lacks |
-| Kernel cmdline | `pci=nocrs iommu=pt pcie_aspm=off modprobe.blacklist=nouveau nouveau.modeset=0` | `pci=nocrs` so the 32 GB BAR gets a window the firmware did not plan for; ASPM off keeps the eGPU link from dropping |
+| Kernel cmdline | `pci=nocrs iommu=pt pcie_aspm=off modprobe.blacklist=nouveau nouveau.modeset=0` | `pci=nocrs` so the kernel, not the firmware, assigns the 32 GB BAR (the firmware cannot: no Resizable BAR / above-4G option on this board); ASPM off keeps the eGPU link from dropping |
 
-Not in the box: a GPU with its own fan needs only `boot-v100.sh`; a dock whose power can stay on skips the relay
-(`boot-v100.sh` then only does the S3 dance and the driver).
+Not in the box: a GPU with its own fan needs only `boot-v100.sh`; a host whose firmware POSTs with the card present
+(Resizable BAR / above-4G decoding available) can leave the dock powered and skip the relay (`boot-v100.sh` then only
+does the S3 dance and the driver).
 
 ## Layout
 
