@@ -1,0 +1,16 @@
+[Unit]
+Description=V100 throttle watch (thermal / HW slowdown episodes and busy-time summaries in the journal, samples in /var/lib/v100-throttle)
+# Independent of the attach unit: the script waits for the GPU and copes with it going away.
+After=v100-attach.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/v100-throttle.sh run
+Environment=INTERVAL_S=5 SUMMARY_S=600 BUSY_UTIL=20 WARN_TEMP_C=80 KEEP_DAYS=30
+StateDirectory=v100-throttle
+Restart=always
+RestartSec=10
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

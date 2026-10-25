@@ -56,13 +56,21 @@ Not in the box: a GPU with its own fan needs only `boot-v100.sh`; a host whose f
 (Resizable BAR / above-4G decoding available) can leave the dock powered and skip the relay (`boot-v100.sh` then only
 does the S3 dance and the driver).
 
+6. **Watching.** A third daemon samples the driver's clock-event reasons every 5 s and tells you, in the journal,
+   when the card throttles during a long job and why: thermal slowdown (the problem), HW slowdown / power brake (a
+   board problem), or just the 200 W cap (expected, only counted). Every 10 minutes of busy time it summarises the
+   SM clock, the maximum temperature and the throttled seconds; every sample goes to a daily CSV for
+   `v100-throttle.sh report`.
+
 ## Layout
 
 ```
 bin/boot-v100.sh            attach sequence: relay -> S3 -> rescan -> BAR check -> driver -> persistence -> power cap
 bin/v100-fan.sh             fan daemon: nvidia-smi temperature -> QUADRO pwm; power cap re-applied when the GPU (re)appears
+bin/v100-throttle.sh        throttle watch: episodes and busy summaries in the journal, a CSV a day, `report [day]`
 systemd/v100-attach.service oneshot at boot (RemainAfterExit), ExecStop opens the relay at shutdown
 systemd/v100-fan.service    the daemon, ordered after the attach unit
+systemd/v100-throttle.service  the watch; samples land in /var/lib/v100-throttle
 examples/llama-superfast.service  how an inference service chains after both (Requires= and After= on them)
 ```
 
@@ -71,9 +79,10 @@ examples/llama-superfast.service  how an inference service chains after both (Re
 ```bash
 sudo install -m 755 bin/boot-v100.sh /usr/local/sbin/boot-v100.sh
 sudo install -m 755 bin/v100-fan.sh  /usr/local/bin/v100-fan.sh
-sudo install -m 644 systemd/v100-attach.service systemd/v100-fan.service /etc/systemd/system/
+sudo install -m 755 bin/v100-throttle.sh /usr/local/bin/v100-throttle.sh
+sudo install -m 644 systemd/v100-attach.service systemd/v100-fan.service systemd/v100-throttle.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now v100-attach.service v100-fan.service
+sudo systemctl enable --now v100-attach.service v100-fan.service v100-throttle.service
 ```
 
 Then check:
@@ -81,6 +90,8 @@ Then check:
 ```bash
 journalctl -u v100-attach -b      # "GPU at 0000:04:00.0", "BAR1 @ 0x...", "V100 online."
 journalctl -fu v100-fan           # one telemetry line a minute: power, temp, clock, util, memory, fan %/rpm
+journalctl -u v100-throttle -p warning -b   # throttle episodes and hot summaries only
+v100-throttle.sh report yesterday # busy time, throttled seconds, temperature against the card's thresholds, episodes
 ```
 
 Settings live at the top of each script and in the units' `Environment=` line:
@@ -94,6 +105,8 @@ Settings live at the top of each script and in the units' `Environment=` line:
 | `FAN_ON_C`, `FAN_MAX_C` | 65, 65 | floor below `FAN_ON_C`, linear to 100% at `FAN_MAX_C`; equal values make a step |
 | `FAN_MIN_PCT` | 40 | the floor; the fan never stops |
 | `FAN_POLL_S` | 3 | temperature poll |
+| `INTERVAL_S`, `SUMMARY_S` | 5, 600 | the throttle watch's sample and summary cadence |
+| `BUSY_UTIL`, `WARN_TEMP_C` | 20, 80 | utilization that counts as busy; temperature that is logged as a warning (the V100 slows down at 87 °C, its max operating temperature is 83) |
 
 With this fan the V100 holds 65–70 °C at the 200 W cap under sustained decode, the fan at 100% above the threshold.
 
