@@ -5,7 +5,7 @@ card up after a cold boot (the dock's power, the PCIe link, the driver), keeping
 GPU's own temperature), and ordering the inference service after both. Two shell scripts and two systemd units, no
 daemons beyond `nvidia-smi`.
 
-This is the host that serves [llama-superfast-v100-q8-inscora](https://github.com/gabtremblay/llama-superfast-v100-q8-inscora),
+This is the host that serves [llama-superfast-v100-q8-dflash2](https://github.com/gabtremblay/llama-superfast-v100-q8-dflash2),
 a llama.cpp fork tuned for this card: Qwen3.8-27B with a 245,760-token context on the one V100.
 
 ## Why this exists
