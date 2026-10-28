@@ -1,5 +1,5 @@
 [Unit]
-Description=llama-superfast-v100 qwen3.8-27b (Huihui abliterated UD-Q4_K_XL + MTP) on the V100
+Description=llama-superfast-v100-BWE qwen3.8-27b (Huihui abliterated UD-Q4_K_XL + DFlash2, 4 slots on 262,144 tokens) on the V100
 # Both must have finished: the attach unit brings the card up, the fan unit owns
 # the QUADRO pwm and the 200 W cap. v100-attach.service needs Type=oneshot +
 # RemainAfterExit=yes for After= to mean "done" rather than "launched".
