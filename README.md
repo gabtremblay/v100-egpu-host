@@ -1,6 +1,7 @@
 # v100-egpu-host
 
-Host-side scripts for running a **passive Tesla V100 PCIe 32 GB** on a consumer **OcuLink eGPU dock** (an AOOSTAR AG02): bringing the
+Host-side scripts for running a **passive Tesla V100 PCIe 32 GB** on a consumer **OcuLink eGPU dock** (an AOOSTAR AG02), on a
+PC with **no Resizable BAR**: bringing the
 card up after a cold boot (the dock's power, the PCIe link, the driver), keeping it cool (a PWM fan driven from the
 GPU's own temperature), and ordering the inference service after both. Two shell scripts and two systemd units, no
 daemons beyond `nvidia-smi`.
