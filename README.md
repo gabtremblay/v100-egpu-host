@@ -8,6 +8,12 @@ daemons beyond `nvidia-smi`.
 This is the host that serves [llama-superfast-v100-BWE-q8-dflash2](https://github.com/inscora/llama-superfast-v100-BWE-q8-dflash2),
 a llama.cpp fork tuned for this card: Qwen3.8-27B with its whole 262,144-token context, shared by four agents, on the one V100.
 
+<p align="center">
+  <img src="docs/rig.webp" alt="The rig: a Ryzen mini-PC beside a passive Tesla V100 on an AOOSTAR AG02 OcuLink dock, a PWM fan ducted onto the card's heatsink" width="560">
+  <br>
+  <em>The rig: the Ryzen mini-PC, the V100 on the AOOSTAR AG02 OcuLink dock, and the PWM fan ducted onto its passive heatsink.</em>
+</p>
+
 ## Why this exists
 
 A datacenter V100 has no fan and no power switch of its own, and this host is a small Ryzen mini-PC whose firmware
