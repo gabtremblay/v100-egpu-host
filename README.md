@@ -6,7 +6,7 @@ GPU's own temperature), and ordering the inference service after both. Two shell
 daemons beyond `nvidia-smi`.
 
 This is the host that serves [llama-superfast-v100-BWE-q8-dflash2](https://github.com/inscora/llama-superfast-v100-BWE-q8-dflash2),
-a llama.cpp fork tuned for this card: Qwen3.8-27B with a 245,760-token context on the one V100.
+a llama.cpp fork tuned for this card: Qwen3.8-27B with its whole 262,144-token context, shared by four agents, on the one V100.
 
 ## Why this exists
 
