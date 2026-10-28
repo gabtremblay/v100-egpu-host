@@ -5,6 +5,9 @@ card up after a cold boot (the dock's power, the PCIe link, the driver), keeping
 GPU's own temperature), and ordering the inference service after both. Two shell scripts and two systemd units, no
 daemons beyond `nvidia-smi`.
 
+The host is a mini-PC with no OcuLink port: the dock's cable plugs into an **M.2 NVMe-to-OcuLink adapter** in its NVMe
+slot, and the OS runs from an **external USB-C drive**.
+
 This is the host that serves [llama-superfast-v100-BWE-q8-dflash2](https://github.com/inscora/llama-superfast-v100-BWE-q8-dflash2),
 a llama.cpp fork tuned for this card: Qwen3.8-27B with its whole 262,144-token context, shared by four agents, on the one V100.
 
@@ -50,8 +53,9 @@ an AT-style protocol, a fan controller with a kernel hwmon driver).
 |---|---|---|
 | GPU | NVIDIA Tesla V100 PCIe 32 GB (passive, 250 W TDP, run at 200 W) | the card |
 | eGPU dock | AOOSTAR AG02 (OcuLink SFF-8612, built-in PSU, power switch) | PCIe slot, 12 V for the card |
-| Host link | OcuLink 4i cable, PCIe Gen3 x4 (~3.3 GB/s) | the only path between host and card |
+| Host link | M.2 NVMe-to-OcuLink adapter in the mini-PC's NVMe slot, OcuLink 4i cable, PCIe Gen3 x4 (~3.3 GB/s) | the only path between host and card |
 | Host | AMD Ryzen 7 5700U mini-PC, 16 threads, 32 GB RAM, Arch Linux, kernel 7.2 | runs the services and the containers |
+| OS drive | external USB-C drive | holds the OS |
 | USB relay | DSD TECH SH-UR01A (Silicon Labs CP2102N, 9600 8N1, `AT+CH1=1/0`) | lets the host power the dock |
 | Dock modification | the dock's power switch leads are brought out and wired across the relay's NO contacts (switch kept in parallel for manual use) | makes the dock switchable by the host |
 | Fan controller | Aquacomputer QUADRO (USB, hwmon `quadro`, driver `aquacomputer_d5next`) | PWM output the daemon owns |
